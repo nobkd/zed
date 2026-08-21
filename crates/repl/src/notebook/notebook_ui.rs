@@ -434,7 +434,14 @@ impl NotebookEditor {
             .project
             .read(cx)
             .worktree_for_id(self.worktree_id, cx)
-            .map(|worktree| worktree.read(cx).abs_path().to_path_buf())
+            .map(|worktree| {
+                worktree
+                    .read(cx)
+                    .absolutize(&self.notebook_item.read(cx).project_path.path)
+                    .parent()
+                    .map(|p| p.to_path_buf())
+                    .unwrap_or_else(std::env::temp_dir)
+            })
             .unwrap_or_else(std::env::temp_dir);
         let fs = self.project.read(cx).fs().clone();
         let view = cx.entity();
